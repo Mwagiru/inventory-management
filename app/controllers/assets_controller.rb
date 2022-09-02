@@ -1,35 +1,59 @@
 class AssetsController < ApplicationController
-
-  skip_before_action: authorize_admin
-  skip_before_action: authorize_manager, only: [:show, :index]
-
+  # skip_before_action :authorize
   def create
-    new_asset = Asset.create!(asset_params)
-    render json: new_asset, status: :created
+    # byebug
+    if @current_user.role == "Manager"
+      new_asset = Asset.create(asset_params)
+      render json: new_asset, status: :created
+    else
+      render json: {error: "You are not permited"}, status: :unauthorized
+    end
   end
 
   def show
-    asset = find_asset(params[:id])
-    render json: asset, iclude: [:user]
+    asset = Asset.find_by(id: params[:id])
+    render json: asset, status: :ok
   end
 
   def index
-   render json: Asset.all, status: :ok
+    if( @current_user.role == "Manager")
+      render json: Asset.all, status: :ok
+    else
+      asset = Asset.where(status: false)
+      render json: asset, status: :ok
+    end
+  end
+  
+  def my_assets
+    assets = Asset.where(user_id: @current_user.id)
+    # if(assets)
+    render json: assets, status: :ok
+  end
+
+  def update
+    if @current_user.role == "Manager"
+      asset = find_asset
+      asset.update!(asset_params)
+      render json: asset, status: :updated
+    else
+      render json: { error: "Unauthorized" }, status: :unauthorized
+    end
+
   end
 
 
   def destroy 
     asset = find_asset(params[:id])
     asset.destroy
-    head: no_content
+    head :no_content
   end
   private
 
-  def find_asset(id)
-    Asset.find_by(id: id)
+  def find_asset
+    Asset.find_by(id: params[:id])
   end
 
   def asset_params
-    params.permit(:name, :amount)
+    params.permit(:name, :user_id, :category, :status, :description)
   end
 end

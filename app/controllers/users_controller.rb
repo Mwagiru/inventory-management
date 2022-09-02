@@ -2,23 +2,21 @@ class UsersController < ApplicationController
   rescue_from ActiveRecord::RecordInvalid, with: :render_unprocessed_entity
   rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
 
-  # skip_before_action :authorize_admin, only: :show
 
-  # create 
+  # skip_before_action :authorize, only[:show]
+  def index
+    if(@current_user.role == "Admin")
+      render json: User.all, status: :ok
+    end
+  end
   def create
     user = User.create(user_params)
-    if user.valid?
-      session[:user_id] = user.id
       render json: user, status: :created
-    else 
-      render json: { errors: user.errors.full_message }
-    end
   end
 
   # show route
   def show
-    current_user = @current_user
-    render json: current_user, status: :ok
+    render json: @current_user, status: :ok
   end
 
   # Update route
@@ -38,11 +36,11 @@ class UsersController < ApplicationController
   private
 
   def find_user
-    User.find_by(id: params[:id])
+    User.find_by(id: session[:id])
   end
 
   def user_params
-    params.permit(:username, :password, :email, :password_confirmation)
+    params.permit(:name,:email,:password,:role)
   end
 
   def render_not_found
@@ -50,6 +48,6 @@ class UsersController < ApplicationController
   end
 
   def render_unprocessed_entity(invalid)
-    render json: { errors: invalid.record.errors}, status: :unprocessable_entity
+    render json: { message: invalid.record.errors}, status: :unprocessable_entity
   end
 end
