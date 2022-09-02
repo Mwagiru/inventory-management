@@ -24,10 +24,10 @@ RSpec.configure do |config|
       paths: {},
       servers: [
         {
-          url: 'https://enventory-management.herokuapp.com/',
+          url: 'https://whispering-hollows-91695.herokuapp.com/',
           variables: {
             defaultHost: {
-              default: 'https://enventory-management.herokuapp.com/'
+              default: 'https://whispering-hollows-91695.herokuapp.com/'
             }
           }
         }
